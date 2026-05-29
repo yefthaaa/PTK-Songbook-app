@@ -1,11 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { requireAdminAccess } from "@/lib/auth/helpers";
+import { canCreateSong } from "@/lib/auth/permissions";
 import { SongForm } from "../_components/song-form";
 import { createSongAction } from "../action";
 
-export default function NewSongPage() {
+export default async function NewSongPage() {
+  const { profile } = await requireAdminAccess();
+
+  if (!canCreateSong(profile)) {
+    redirect("/admin/akses-ditolak");
+  }
+
   return (
     <div className="space-y-6 motion-safe:animate-[fade-slide_.35s_ease-out]">
-      {/* ── Page header ── */}
       <div className="flex items-center gap-3">
         <Link
           href="/admin/songs"
@@ -26,7 +34,6 @@ export default function NewSongPage() {
         </div>
       </div>
 
-      {/* ── Form ── */}
       <SongForm mode="create" action={createSongAction} />
     </div>
   );

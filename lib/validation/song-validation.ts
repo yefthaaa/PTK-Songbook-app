@@ -1,5 +1,6 @@
 import type { LyricSection, LyricSectionType, SongCategory } from "@/types/song";
 import { SONG_CATEGORIES } from "@/types/song";
+import { isValidAudioUrl, isValidYouTubeUrl } from "@/lib/youtube";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,6 +11,8 @@ export type SongFormValues = {
   category: SongCategory;
   key: string;
   sections: LyricSection[];
+  youtubeUrl: string;
+  audioUrl: string;
 };
 
 export type SongValidationErrors = Partial<Record<keyof SongFormValues | "form", string>>;
@@ -83,6 +86,14 @@ export function validateSongForm(values: SongFormValues): SongValidationErrors {
     errors.key = "Nada dasar wajib diisi.";
   }
 
+  if (values.youtubeUrl.trim() && !isValidYouTubeUrl(values.youtubeUrl)) {
+    errors.youtubeUrl = "URL YouTube tidak valid.";
+  }
+
+  if (values.audioUrl.trim() && !isValidAudioUrl(values.audioUrl)) {
+    errors.audioUrl = "URL audio harus berupa link http(s) yang valid.";
+  }
+
   // Sections
   if (values.sections.length === 0) {
     errors.sections = "Minimal satu bagian lirik harus diisi.";
@@ -136,6 +147,8 @@ export function parseSongFormData(formData: FormData): SongFormValues {
     category: ((formData.get("category") as string | null) ?? "Pujian") as SongCategory,
     key: ((formData.get("key") as string | null) ?? "").trim(),
     sections,
+    youtubeUrl: ((formData.get("youtube_url") as string | null) ?? "").trim(),
+    audioUrl: ((formData.get("audio_url") as string | null) ?? "").trim(),
   };
 }
 

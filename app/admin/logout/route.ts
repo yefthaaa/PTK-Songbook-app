@@ -1,15 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { signOut } from "@/lib/auth/helpers";
 
+function loginRedirect(request: NextRequest) {
+  return NextResponse.redirect(new URL("/admin/login", request.url), { status: 303 });
+}
+
 /**
- * POST /admin/logout
- * Signs out the current user and redirects to the login page.
- * Called via a form with method="post" action="/admin/logout".
+ * GET /admin/logout — untuk link langsung dari browser
+ * POST /admin/logout — dari form di sidebar admin
  */
-export async function POST() {
+export async function GET(request: NextRequest) {
   await signOut();
-  return NextResponse.redirect(
-    new URL("/admin/login", process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
-    { status: 303 },
-  );
+  return loginRedirect(request);
+}
+
+export async function POST(request: NextRequest) {
+  await signOut();
+  return loginRedirect(request);
 }

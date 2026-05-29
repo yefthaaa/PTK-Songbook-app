@@ -89,6 +89,12 @@ export function SongForm({ mode, initialValues = {}, action }: SongFormProps) {
   const [key, setKey] = useState(
     state?.values.key ?? initialValues.key ?? "",
   );
+  const [youtubeUrl, setYoutubeUrl] = useState(
+    state?.values.youtube_url ?? initialValues.youtubeUrl ?? "",
+  );
+  const [audioUrl, setAudioUrl] = useState(
+    state?.values.audio_url ?? initialValues.audioUrl ?? "",
+  );
   const [sections, setSections] = useState<LyricSection[]>(() => {
     if (state?.values.sections_json) {
       try {
@@ -236,6 +242,52 @@ export function SongForm({ mode, initialValues = {}, action }: SongFormProps) {
               ))}
             </datalist>
           </Field>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/80 bg-white/80 p-5 shadow-[0_10px_30px_-20px_rgba(13,148,136,0.4)] backdrop-blur-sm dark:border-teal-900/30 dark:bg-slate-900/70 sm:p-6">
+        <h2 className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-teal-700/80 dark:text-teal-400/80">
+          Referensi Audio
+        </h2>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field
+              label="Link YouTube"
+              htmlFor="youtube_url"
+              error={errors.youtubeUrl}
+              hint="Contoh: https://www.youtube.com/watch?v=..."
+            >
+              <input
+                id="youtube_url"
+                name="youtube_url"
+                type="url"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+                disabled={isPending}
+                className={`${inputClass} ${errors.youtubeUrl ? inputErrorClass : ""}`}
+              />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field
+              label="Link Audio (MP3/stream)"
+              htmlFor="audio_url"
+              error={errors.audioUrl}
+              hint="URL file audio atau streaming (opsional)"
+            >
+              <input
+                id="audio_url"
+                name="audio_url"
+                type="url"
+                value={audioUrl}
+                onChange={(e) => setAudioUrl(e.target.value)}
+                placeholder="https://..."
+                disabled={isPending}
+                className={`${inputClass} ${errors.audioUrl ? inputErrorClass : ""}`}
+              />
+            </Field>
+          </div>
         </div>
       </div>
 

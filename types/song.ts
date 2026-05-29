@@ -1,13 +1,6 @@
-export type SongCategory = "Pujian" | "Penyembahan" | "Syukur" | "Doa" | "Natal";
+export type SongCategory = "Pujian" | "Penyembahan";
 
-export const SONG_CATEGORIES = [
-  "Semua",
-  "Pujian",
-  "Penyembahan",
-  "Syukur",
-  "Doa",
-  "Natal",
-] as const;
+export const SONG_CATEGORIES = ["Semua", "Pujian", "Penyembahan"] as const;
 
 export type LyricSectionType =
   | "verse-1"
@@ -31,6 +24,8 @@ export type Song = {
   number: string;
   key: string;
   sections: LyricSection[];
+  youtubeUrl?: string | null;
+  audioUrl?: string | null;
   createdAt?: string;
 };
 
@@ -47,6 +42,8 @@ export type SongDbRow = {
   category: SongCategory;
   key: string;
   lyrics_sections: unknown;
+  youtube_url?: string | null;
+  audio_url?: string | null;
   created_at: string | null;
 };
 
@@ -57,6 +54,26 @@ export type SongInsertInput = {
   category: SongCategory;
   key: string;
   lyrics_sections: LyricSection[];
+  youtube_url?: string | null;
+  audio_url?: string | null;
+};
+
+/** JSON export/import bundle shape */
+export type SongExportRecord = {
+  title: string;
+  slug: string;
+  number: string;
+  category: SongCategory;
+  key: string;
+  lyrics_sections: LyricSection[];
+  youtube_url?: string | null;
+  audio_url?: string | null;
+};
+
+export type SongsExportBundle = {
+  version: 1;
+  exported_at: string;
+  songs: SongExportRecord[];
 };
 
 export type SongUpdateInput = Partial<SongInsertInput>;

@@ -96,15 +96,20 @@ function mapSongDbRow(row: Partial<SongDbRow>): Song {
     category: row.category ?? "Pujian",
     key: row.key ?? "-",
     sections: normalizeSections(row.lyrics_sections),
-    createdAt: row.created_at,
+    youtubeUrl: row.youtube_url ?? null,
+    audioUrl: row.audio_url ?? null,
+    createdAt: row.created_at ?? undefined,
   };
 }
+
+const SONG_SELECT =
+  "id,title,slug,number,category,key,lyrics_sections,youtube_url,audio_url,created_at";
 
 export async function getSongs(): Promise<Song[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from(SONGS_TABLE)
-    .select("id,title,slug,number,category,key,lyrics_sections,created_at")
+    .select(SONG_SELECT)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -118,7 +123,7 @@ export async function getSongBySlug(slug: string): Promise<Song | null> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from(SONGS_TABLE)
-    .select("id,title,slug,number,category,key,lyrics_sections,created_at")
+    .select(SONG_SELECT)
     .eq("slug", slug)
     .maybeSingle();
 

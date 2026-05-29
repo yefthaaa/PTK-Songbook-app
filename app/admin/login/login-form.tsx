@@ -1,16 +1,22 @@
 "use client";
 
 import { useActionState, useRef } from "react";
-import { loginAction } from "./actions";
+import { loginAction, type LoginActionResult } from "./actions";
 
-type LoginState = { error: string; email: string } | null;
+type LoginState = LoginActionResult | null;
 
 export function LoginForm({ next }: { next: string }) {
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(
     async (_prev, formData) => {
       const result = await loginAction(formData);
-      // loginAction either returns an error object or calls redirect() (no return)
-      return result ?? null;
+
+      if (result.ok) {
+        // Full page navigation agar cookie session terbaca middleware
+        window.location.assign(result.redirectTo);
+        return null;
+      }
+
+      return result;
     },
     null,
   );
@@ -19,11 +25,9 @@ export function LoginForm({ next }: { next: string }) {
 
   return (
     <form action={formAction} className="space-y-5" noValidate>
-      {/* hidden field to carry redirect target through the action */}
       <input type="hidden" name="next" value={next} />
 
-      {/* Error banner */}
-      {state?.error ? (
+      {state && !state.ok ? (
         <div
           role="alert"
           className="flex items-start gap-3 rounded-2xl border border-rose-200/80 bg-rose-50/80 px-4 py-3.5 text-sm text-rose-700 backdrop-blur-sm dark:border-rose-800/50 dark:bg-rose-950/50 dark:text-rose-300"
@@ -44,7 +48,6 @@ export function LoginForm({ next }: { next: string }) {
         </div>
       ) : null}
 
-      {/* Email field */}
       <div className="space-y-2">
         <label
           htmlFor="email"
@@ -57,7 +60,7 @@ export function LoginForm({ next }: { next: string }) {
           name="email"
           type="email"
           autoComplete="email"
-          defaultValue={state?.email ?? ""}
+          defaultValue={state && !state.ok ? state.email : ""}
           required
           disabled={isPending}
           placeholder="admin@gereja.org"
@@ -65,7 +68,6 @@ export function LoginForm({ next }: { next: string }) {
         />
       </div>
 
-      {/* Password field */}
       <div className="space-y-2">
         <label
           htmlFor="password"
@@ -86,7 +88,6 @@ export function LoginForm({ next }: { next: string }) {
         />
       </div>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={isPending}

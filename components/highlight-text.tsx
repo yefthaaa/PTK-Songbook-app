@@ -24,7 +24,7 @@ export function HighlightText({ text, query }: HighlightTextProps) {
         return isMatch ? (
           <mark
             key={`${part}-${index}`}
-            className="rounded bg-emerald-100 px-0.5 text-slate-900 dark:bg-emerald-900/70 dark:text-emerald-100"
+            className="rounded bg-aion-sky-200 px-0.5 text-aion-navy"
           >
             {part}
           </mark>

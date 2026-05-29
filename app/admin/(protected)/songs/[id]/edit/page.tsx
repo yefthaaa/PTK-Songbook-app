@@ -1,5 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { requireAdminAccess } from "@/lib/auth/helpers";
+import { canEditSong } from "@/lib/auth/permissions";
 import { adminGetSongById } from "@/services/admin-songs-service";
 import { SongForm } from "../../_components/song-form";
 import { updateSongAction } from "../../action";
@@ -9,6 +11,12 @@ type EditSongPageProps = {
 };
 
 export default async function EditSongPage({ params }: EditSongPageProps) {
+  const { profile } = await requireAdminAccess();
+
+  if (!canEditSong(profile)) {
+    redirect("/admin/akses-ditolak");
+  }
+
   const { id } = await params;
   const song = await adminGetSongById(id);
 
@@ -55,6 +63,8 @@ export default async function EditSongPage({ params }: EditSongPageProps) {
           category: song.category,
           key: song.key,
           sections: song.sections,
+          youtubeUrl: song.youtubeUrl ?? "",
+          audioUrl: song.audioUrl ?? "",
         }}
         action={boundUpdateAction}
       />

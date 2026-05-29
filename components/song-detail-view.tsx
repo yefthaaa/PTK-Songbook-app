@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TouchEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { buildSongPath } from "@/lib/setlist/song-navigation";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -12,17 +14,26 @@ import {
 } from "@/components/icons";
 import { useFavorites } from "@/components/use-favorites";
 import { useRecentlyViewed } from "@/components/use-recently-viewed";
+import { SongMediaPanel } from "@/components/song-media-panel";
 import type { Song } from "@/types/song";
 
 type SongDetailViewProps = {
   song: Song;
   prevSongSlug?: string;
   nextSongSlug?: string;
+  setlistSlug?: string;
+  setlistTitle?: string;
 };
 
 const fontSizeScale = [1, 1.15, 1.3, 1.5] as const;
 
-export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailViewProps) {
+export function SongDetailView({
+  song,
+  prevSongSlug,
+  nextSongSlug,
+  setlistSlug,
+  setlistTitle,
+}: SongDetailViewProps) {
   const router = useRouter();
   const touchStartX = useRef<number | null>(null);
   const [fontScaleIndex, setFontScaleIndex] = useState(1);
@@ -64,13 +75,13 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
 
   function goToPrevSong() {
     if (prevSongSlug) {
-      router.push(`/song/${prevSongSlug}`);
+      router.push(buildSongPath(prevSongSlug, setlistSlug));
     }
   }
 
   function goToNextSong() {
     if (nextSongSlug) {
-      router.push(`/song/${nextSongSlug}`);
+      router.push(buildSongPath(nextSongSlug, setlistSlug));
     }
   }
 
@@ -97,21 +108,31 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className={`min-h-screen bg-gradient-to-b from-emerald-50 via-teal-50/70 to-white text-slate-800 transition-all duration-300 motion-safe:animate-[fade-slide_.35s_ease-out] dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100 ${
+      className={`app-sky-page transition-all duration-300 motion-safe:animate-[fade-slide_.35s_ease-out] ${
         isFullscreen ? "fixed inset-0 z-50 overflow-y-auto" : ""
       }`}
     >
       <div className="mx-auto w-full max-w-3xl px-4 pb-10 pt-4 sm:px-6">
-        <header className="sticky top-3 z-10 rounded-3xl border border-white/70 bg-white/65 p-4 shadow-[0_10px_40px_-25px_rgba(13,148,136,0.65)] backdrop-blur-xl dark:border-teal-900/30 dark:bg-slate-900/70 sm:p-5">
+        <header className="app-surface app-gold-ring sticky top-3 z-10 p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-1 rounded-full border border-teal-100 bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 transition-colors hover:border-teal-200 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-teal-200"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Kembali
-            </button>
+            <div className="flex min-w-0 flex-col gap-1">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex w-fit items-center gap-1 rounded-full border border-aion-sky-200 bg-white px-3 py-1.5 text-xs font-semibold text-aion-navy transition-colors hover:border-aion-sky-300 hover:bg-aion-sky-50"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                Kembali
+              </button>
+              {setlistSlug ? (
+                <Link
+                  href={`/setlist/${setlistSlug}`}
+                  className="truncate text-[11px] font-semibold text-aion-sky-500 underline-offset-2 hover:underline"
+                >
+                  ← Setlist{setlistTitle ? `: ${setlistTitle}` : ""}
+                </Link>
+              ) : null}
+            </div>
 
             <button
               type="button"
@@ -123,8 +144,8 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
               disabled={!isReady}
               className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-60 ${
                 isFavorite
-                  ? "border-emerald-200 bg-emerald-500 text-white"
-                  : "border-teal-100 bg-white text-teal-700 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-teal-200"
+                  ? "border-aion-gold/50 bg-aion-navy text-white"
+                  : "border-aion-sky-200 bg-white text-aion-navy hover:bg-aion-sky-50"
               }`}
             >
               <HeartIcon className="h-4 w-4" />
@@ -139,10 +160,10 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
             <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
               {safeNumber}
             </span>
-            <span className="rounded-full bg-teal-50 px-3 py-1 text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">
+            <span className="rounded-full bg-aion-sky-100 px-3 py-1 text-aion-navy">
               {safeCategory}
             </span>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+            <span className="rounded-full border border-aion-gold/35 bg-aion-gold/10 px-3 py-1 text-aion-navy">
               Key {safeKey}
             </span>
           </div>
@@ -152,14 +173,14 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
               <button
                 type="button"
                 onClick={() => setFontScaleIndex((prev) => Math.max(0, prev - 1))}
-                className="rounded-full border border-teal-100 bg-white px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-teal-200"
+                className="rounded-full border border-aion-sky-200 bg-white px-3 py-1.5 text-xs font-bold text-aion-navy hover:bg-aion-sky-50"
               >
                 A-
               </button>
               <button
                 type="button"
                 onClick={() => setFontScaleIndex((prev) => Math.min(fontSizeScale.length - 1, prev + 1))}
-                className="rounded-full border border-teal-100 bg-white px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-teal-200"
+                className="rounded-full border border-aion-sky-200 bg-white px-3 py-1.5 text-xs font-bold text-aion-navy hover:bg-aion-sky-50"
               >
                 <TextSizeIcon className="mr-1 inline h-4 w-4" />
                 A+
@@ -183,7 +204,7 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
           </div>
         </header>
 
-        <section className="relative mt-5 rounded-3xl border border-white/80 bg-white/85 p-4 shadow-[0_18px_40px_-30px_rgba(13,148,136,0.75)] backdrop-blur-sm dark:border-teal-900/30 dark:bg-slate-900/75 sm:p-6">
+        <section className="app-surface relative mt-5 p-4 sm:p-6">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-12 rounded-t-3xl bg-gradient-to-b from-white/95 via-white/45 to-transparent dark:from-slate-900/95 dark:via-slate-900/50" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 rounded-b-3xl bg-gradient-to-t from-white/95 via-white/45 to-transparent dark:from-slate-900/95 dark:via-slate-900/50" />
 
@@ -196,7 +217,7 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
             {safeSections.length > 0 ? (
               safeSections.map((section, index) => (
               <article key={`${safeSlug || "song"}-${section.type}-${section.title}-${index}`} className="space-y-3">
-                <h2 className="text-xs font-bold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">
+                <h2 className="text-xs font-bold uppercase tracking-[0.24em] text-aion-sky-500">
                   {section?.title ?? `Verse ${index + 1}`}
                 </h2>
                 <div className="space-y-2.5">
@@ -208,7 +229,7 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
               ))
             ) : (
               <article className="space-y-3">
-                <h2 className="text-xs font-bold uppercase tracking-[0.24em] text-teal-600 dark:text-teal-300">
+                <h2 className="text-xs font-bold uppercase tracking-[0.24em] text-aion-sky-500">
                   Verse
                 </h2>
                 <div className="space-y-2.5">
@@ -219,12 +240,16 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
           </div>
         </section>
 
+        {!isPresentationMode ? (
+          <SongMediaPanel youtubeUrl={song.youtubeUrl} audioUrl={song.audioUrl} />
+        ) : null}
+
         <footer className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={goToPrevSong}
             disabled={!prevSongSlug}
-            className="inline-flex items-center justify-center gap-1 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 text-sm font-semibold text-teal-700 transition-colors enabled:hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-teal-900/40 dark:bg-slate-900/70 dark:text-teal-200"
+            className="app-surface-muted inline-flex items-center justify-center gap-1 px-4 py-3 text-sm font-semibold text-aion-navy transition-colors enabled:hover:border-aion-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ArrowLeftIcon className="h-4 w-4" />
             Lagu Sebelumnya
@@ -233,7 +258,7 @@ export function SongDetailView({ song, prevSongSlug, nextSongSlug }: SongDetailV
             type="button"
             onClick={goToNextSong}
             disabled={!nextSongSlug}
-            className="inline-flex items-center justify-center gap-1 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 text-sm font-semibold text-teal-700 transition-colors enabled:hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-teal-900/40 dark:bg-slate-900/70 dark:text-teal-200"
+            className="app-surface-muted inline-flex items-center justify-center gap-1 px-4 py-3 text-sm font-semibold text-aion-navy transition-colors enabled:hover:border-aion-sky-300 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Lagu Berikutnya
             <ArrowRightIcon className="h-4 w-4" />

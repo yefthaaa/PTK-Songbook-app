@@ -1,34 +1,66 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
+import { createSupabaseMiddlewareClient } from "@/lib/supabase/middleware";
+import { getProfileFromSupabase } from "@/lib/auth/middleware-profile";
+import { canAccessAdmin, canManageUsers } from "@/lib/auth/permissions";
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({ request });
-  const supabase = getSupabaseMiddlewareClient(request, response);
+  let response = NextResponse.next({ request });
 
-  // Refresh session — this keeps the cookie alive between requests.
-  // IMPORTANT: do not remove this call; without it the session expires silently.
+  const supabase = createSupabaseMiddlewareClient(request, response);
+
+  // Refresh session — writes updated cookies onto `response`
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
-  // ── Admin route protection ───────────────────────────────────────────────
-  // /admin/login and /admin/logout are always public.
   const isAdminLoginPage = pathname === "/admin/login";
   const isAdminLogoutPage = pathname === "/admin/logout";
+  const isAccessDeniedPage = pathname === "/admin/akses-ditolak";
   const isAdminRoute = pathname.startsWith("/admin");
 
-  if (isAdminRoute && !isAdminLoginPage && !isAdminLogoutPage && !session) {
-    // Unauthenticated → redirect to login, preserving the intended destination.
+  if (isAdminLoginPage || isAdminLogoutPage) {
+    if (isAdminLoginPage && user) {
+      const profile = await getProfileFromSupabase(supabase, user.id);
+      if (profile && canAccessAdmin(profile)) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+    }
+    return response;
+  }
+
+  if (!isAdminRoute) {
+    return response;
+  }
+
+  if (!user) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Authenticated user visiting /admin/login → send to dashboard.
-  if (isAdminLoginPage && session) {
-    return NextResponse.redirect(new URL("/admin", request.url));
+  const profile = await getProfileFromSupabase(supabase, user.id);
+
+  if (!profile) {
+    const deniedUrl = new URL("/admin/akses-ditolak", request.url);
+    deniedUrl.searchParams.set("reason", "profile_missing");
+    return NextResponse.redirect(deniedUrl);
+  }
+
+  if (!canAccessAdmin(profile) && !isAccessDeniedPage) {
+    return NextResponse.redirect(new URL("/admin/akses-ditolak", request.url));
+  }
+
+  if (pathname.startsWith("/admin/users") && !canManageUsers(profile)) {
+    return NextResponse.redirect(new URL("/admin/akses-ditolak", request.url));
+  }
+
+  const isNewSong = pathname === "/admin/songs/new";
+  const isEditSong = /^\/admin\/songs\/[^/]+\/edit$/.test(pathname);
+
+  if ((isNewSong || isEditSong) && !canAccessAdmin(profile)) {
+    return NextResponse.redirect(new URL("/admin/akses-ditolak", request.url));
   }
 
   return response;
@@ -36,13 +68,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all routes EXCEPT:
-     * - _next/static  (Next.js static assets)
-     * - _next/image   (image optimization)
-     * - favicon.ico
-     * - public files (svg, png, jpg, etc.)
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

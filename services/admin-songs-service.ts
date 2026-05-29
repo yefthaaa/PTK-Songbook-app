@@ -10,7 +10,7 @@ import type { Song, SongDbRow, SongInsertInput, SongUpdateInput } from "@/types/
 const SONGS_TABLE = "songs";
 
 const SELECT_FIELDS =
-  "id,title,slug,number,category,key,lyrics_sections,created_at";
+  "id,title,slug,number,category,key,lyrics_sections,youtube_url,audio_url,created_at";
 
 // ─── Shared mapper (same logic as public service) ─────────────────────────────
 
@@ -26,8 +26,23 @@ function mapRow(row: Partial<SongDbRow>): Song {
     category: row.category ?? "Pujian",
     key: row.key ?? "-",
     sections,
+    youtubeUrl: row.youtube_url ?? null,
+    audioUrl: row.audio_url ?? null,
     createdAt: row.created_at ?? undefined,
   };
+}
+
+export async function adminGetSongsForExport() {
+  const supabase = await getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from(SONGS_TABLE)
+    .select(
+      "title,slug,number,category,key,lyrics_sections,youtube_url,audio_url",
+    )
+    .order("number", { ascending: true });
+
+  if (error) throw new Error(`Failed to export songs: ${error.message}`);
+  return data ?? [];
 }
 
 // ─── Read ─────────────────────────────────────────────────────────────────────

@@ -1,4 +1,10 @@
 import Link from "next/link";
+import { requireAdminAccess } from "@/lib/auth/helpers";
+import {
+  canCreateSong,
+  canEditSong,
+  canDeleteSong,
+} from "@/lib/auth/permissions";
 import { adminGetSongs } from "@/services/admin-songs-service";
 import { DeleteSongButton } from "./_components/delete-song-button";
 import type { SongCategory } from "@/types/song";
@@ -11,6 +17,11 @@ type SongsPageProps = {
 const CATEGORY_OPTIONS = SONG_CATEGORIES.filter((c) => c !== "Semua");
 
 export default async function AdminSongsPage({ searchParams }: SongsPageProps) {
+  const { profile } = await requireAdminAccess();
+  const showCreate = canCreateSong(profile);
+  const showEdit = canEditSong(profile);
+  const showDelete = canDeleteSong(profile);
+
   const { q = "", category = "Semua" } = await searchParams;
 
   const allSongs = await adminGetSongs();
@@ -42,15 +53,25 @@ export default async function AdminSongsPage({ searchParams }: SongsPageProps) {
             {allSongs.length} total lagu dalam database
           </p>
         </div>
-        <Link
-          href="/admin/songs/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_-14px_rgba(13,148,136,0.9)] transition-all hover:from-teal-400 hover:to-emerald-400 active:scale-[0.98]"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Tambah Lagu
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/songs/import-export"
+            className="inline-flex items-center gap-2 rounded-xl border border-teal-200 bg-white px-4 py-2.5 text-sm font-semibold text-teal-700 dark:border-teal-800/50 dark:bg-slate-900 dark:text-teal-300"
+          >
+            Import / Export
+          </Link>
+          {showCreate ? (
+            <Link
+              href="/admin/songs/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_-14px_rgba(13,148,136,0.9)] transition-all hover:from-teal-400 hover:to-emerald-400 active:scale-[0.98]"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Tambah Lagu
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {/* ── Search + filter ───────────────────────────────────────────────── */}
@@ -174,13 +195,17 @@ export default async function AdminSongsPage({ searchParams }: SongsPageProps) {
                         >
                           Lihat
                         </a>
-                        <Link
-                          href={`/admin/songs/${song.id}/edit`}
-                          className="rounded-lg border border-teal-100 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-teal-200 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-teal-900/20"
-                        >
-                          Edit
-                        </Link>
-                        <DeleteSongButton id={song.id} title={song.title} />
+                        {showEdit ? (
+                          <Link
+                            href={`/admin/songs/${song.id}/edit`}
+                            className="rounded-lg border border-teal-100 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-teal-200 hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-teal-900/20"
+                          >
+                            Edit
+                          </Link>
+                        ) : null}
+                        {showDelete ? (
+                          <DeleteSongButton id={song.id} title={song.title} />
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -226,13 +251,17 @@ export default async function AdminSongsPage({ searchParams }: SongsPageProps) {
                   >
                     Lihat
                   </a>
-                  <Link
-                    href={`/admin/songs/${song.id}/edit`}
-                    className="rounded-lg border border-teal-100 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-slate-300"
-                  >
-                    Edit
-                  </Link>
-                  <DeleteSongButton id={song.id} title={song.title} />
+                  {showEdit ? (
+                    <Link
+                      href={`/admin/songs/${song.id}/edit`}
+                      className="rounded-lg border border-teal-100 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-teal-50 dark:border-teal-900/40 dark:bg-slate-900 dark:text-slate-300"
+                    >
+                      Edit
+                    </Link>
+                  ) : null}
+                  {showDelete ? (
+                    <DeleteSongButton id={song.id} title={song.title} />
+                  ) : null}
                 </div>
               </div>
             ))}

@@ -1,66 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import { ChurchBrand } from "@/components/church-brand";
+import { ADMIN_APP_NAME, ADMIN_APP_SUBTITLE } from "@/lib/branding";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { AdminNavItem } from "./admin-nav";
+import { isAdminNavActive } from "./admin-nav";
+import { ADMIN_NAV_ICONS } from "./admin-nav-icons";
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
+type AdminSidebarProps = {
+  email: string;
+  roleLabel: string;
+  navItems: AdminNavItem[];
 };
 
-const navItems: NavItem[] = [
-  {
-    href: "/admin",
-    label: "Dashboard",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/songs",
-    label: "Lagu",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-      </svg>
-    ),
-  },
-];
-
-export function AdminSidebar({ email }: { email: string }) {
+export function AdminSidebar({ email, roleLabel, navItems }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [navReady, setNavReady] = useState(false);
+
+  useEffect(() => {
+    setNavReady(true);
+  }, []);
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-teal-100/70 bg-white/80 backdrop-blur-xl dark:border-teal-900/30 dark:bg-slate-900/80">
-      {/* Branding */}
-      <div className="border-b border-teal-100/70 px-6 py-5 dark:border-teal-900/30">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 shadow-[0_8px_20px_-10px_rgba(13,148,136,0.8)]">
-            <svg className="h-4.5 w-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-            </svg>
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">SongBook Admin</p>
-            <p className="text-[11px] font-medium text-teal-600 dark:text-teal-400">Panel Manajemen</p>
-          </div>
-        </div>
+    <aside className="flex h-full w-64 flex-col border-r border-aion-sky-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="border-b border-aion-sky-200/80 px-6 py-5">
+        <ChurchBrand
+          size="sm"
+          title={ADMIN_APP_NAME}
+          subtitle={ADMIN_APP_SUBTITLE}
+          className="[&_p:last-child]:text-aion-sky-500"
+        />
       </div>
 
-      {/* Nav links */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = navReady && isAdminNavActive(pathname, item.href);
 
             return (
               <li key={item.href}>
@@ -68,20 +45,20 @@ export function AdminSidebar({ email }: { email: string }) {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${
                     isActive
-                      ? "bg-gradient-to-r from-teal-500/10 to-emerald-500/10 text-teal-700 dark:from-teal-500/20 dark:to-emerald-500/20 dark:text-teal-300"
-                      : "text-slate-600 hover:bg-teal-50/70 hover:text-teal-700 dark:text-slate-400 dark:hover:bg-teal-900/20 dark:hover:text-teal-300"
+                      ? "bg-aion-sky-100 text-aion-navy"
+                      : "text-slate-600 hover:bg-aion-sky-50 hover:text-aion-navy"
                   }`}
                 >
                   <span
                     className={
-                      isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400 dark:text-slate-500"
+                      isActive ? "text-aion-sky-500" : "text-slate-400"
                     }
                   >
-                    {item.icon}
+                    {ADMIN_NAV_ICONS[item.href]}
                   </span>
                   {item.label}
                   {isActive && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-teal-500" />
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-aion-gold" />
                   )}
                 </Link>
               </li>
@@ -90,15 +67,19 @@ export function AdminSidebar({ email }: { email: string }) {
         </ul>
       </nav>
 
-      {/* User + logout */}
       <div className="border-t border-teal-100/70 px-4 py-4 dark:border-teal-900/30">
         <div className="mb-3 flex items-center gap-3 rounded-xl bg-teal-50/60 px-3 py-2.5 dark:bg-teal-900/20">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-emerald-400 text-xs font-bold uppercase text-white shadow-sm">
             {email.charAt(0)}
           </div>
-          <p className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
-            {email}
-          </p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
+              {email}
+            </p>
+            <p className="truncate text-[10px] font-medium text-teal-600 dark:text-teal-400">
+              {roleLabel}
+            </p>
+          </div>
         </div>
         <form method="post" action="/admin/logout">
           <button
